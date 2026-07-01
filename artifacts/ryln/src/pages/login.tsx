@@ -49,7 +49,11 @@ export default function Login() {
             title: "Welcome back!",
             description: "You have successfully logged in.",
           });
-          setLocation("/dashboard");
+          if (data.member.role === "admin") {
+            setLocation("/dashboard");
+          } else {
+            setLocation("/member");
+          }
         },
         onError: (error) => {
           toast({
