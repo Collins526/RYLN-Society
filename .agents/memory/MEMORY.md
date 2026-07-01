@@ -1,0 +1,2 @@
+- [RYLN table import gotcha](ryln-table-imports.md) — shadcn table exports TableBody/TableCell/etc, not shorthand Body/Cell/etc; codegen subagents may use wrong names
+- [RYLN auth and Express 5 quirks](ryln-express-quirks.md) — dateOfBirth Date→string coercion, params.id cast, JWT localStorage keys

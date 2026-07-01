@@ -1,44 +1,63 @@
-# [Project name]
+# Rift Youth Leadership Network (RYLN)
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack society management website for the Rift Youth Leadership Network — public-facing pages, member registration/login, and an admin dashboard.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — JWT signing secret
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- Frontend: React + Vite, Tailwind CSS, shadcn/ui, TanStack Query
+- API: Express 5 (port 8080)
 - DB: PostgreSQL + Drizzle ORM
+- Auth: JWT (stored in localStorage as `ryln_token` / `ryln_user`)
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — source of truth for all API contracts (30+ endpoints)
+- `lib/db/src/schema/` — Drizzle ORM schema (members, announcements, activities, gallery, contact_messages, leadership)
+- `lib/api-client-react/src/generated/` — generated React Query hooks and Zod schemas (do not edit)
+- `artifacts/ryln/src/` — React frontend (pages, components, hooks)
+- `artifacts/api-server/src/routes/` — Express route handlers
+- `artifacts/api-server/src/lib/auth.ts` — JWT middleware
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Contract-first API: OpenAPI spec → Orval codegen → typed React Query hooks. Never write fetch calls by hand.
+- JWT auth stored in localStorage; `Authorization: Bearer <token>` header injected by custom fetch wrapper in `lib/api-client-react/src/custom-fetch.ts`.
+- Admin role gated at API layer via `requireAuth` + `requireAdmin` middleware; frontend checks `user.role === 'admin'` for UI routing.
+- `dateOfBirth` is stored as a `date` string in Postgres; must convert `Date` objects to `YYYY-MM-DD` string before Drizzle insert.
+- Express 5 types `req.params.id` as `string | string[]`; always cast: `parseInt(req.params.id as string)`.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Public pages**: Home (hero, stats, announcements), About (leadership team, mission), Programs/Activities, Gallery, Contact form
+- **Member portal**: Registration form → pending approval, Login, Member profile
+- **Admin dashboard**: Member management (approve/suspend/reject/delete), Announcements CRUD, Activities CRUD, Gallery management, Contact messages inbox, Leadership team management, Stats overview
 
-## User preferences
+## Credentials (seed data)
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Admin: `admin@ryln.org` / `Admin@RYLN2024`
+- Members: `james.k@email.com` … `peter.k@email.com` / `Member@1234`
+- Pending member: `brian.m@email.com` / `Member@1234`
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Do NOT run `pnpm dev` at workspace root — use workflows or `pnpm --filter` commands.
+- After any OpenAPI spec change, run `pnpm --filter @workspace/api-spec run codegen` before touching frontend code.
+- `pg` is NOT in the pnpm workspace catalog — add it with an explicit version string, not `catalog:`.
+- The shadcn table component exports `TableBody`, `TableCell`, `TableHead`, `TableHeader`, `TableRow` — not the shorthand `Body`, `Cell`, etc.
+- JWT secret falls back to `ryln-secret-2024` if `SESSION_SECRET` is not set.
 
 ## Pointers
 

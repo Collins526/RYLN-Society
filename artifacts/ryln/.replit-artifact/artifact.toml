@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Rift Youth Leadership Network"
+version = "1.0.0"
+id = "artifacts/ryln"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20070
+
+[services.development]
+run = "pnpm --filter @workspace/ryln run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ryln", "run", "build" ]
+publicDir = "artifacts/ryln/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20070"
+BASE_PATH = "/"

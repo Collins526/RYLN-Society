@@ -1,0 +1,26 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "XUiqq1dAZaXEJ9Kk5X_mh"
+uri = "file://artifacts/ryln/public/images/hero.png"
+type = "image"
+title = "Kenyan youth leadership group"
+
+[[generated]]
+id = "1uYqHAGRuIgHEk8hqVvvH"
+uri = "file://artifacts/ryln/public/images/activity-1.png"
+type = "image"
+title = "Community service outdoors"
+
+[[generated]]
+id = "-sZ0g4fZkl02IsrOt3ICf"
+uri = "file://artifacts/ryln/public/images/activity-2.png"
+type = "image"
+title = "Indoor workshop setting"
+
+[[generated]]
+id = "grEI0BHafMIqDcgW5S6yJ"
+uri = "file://artifacts/ryln/public/images/gallery-1.png"
+type = "image"
+title = "Group photo outdoors"

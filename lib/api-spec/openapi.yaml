@@ -1,22 +1,37 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Rift Youth Leadership Network API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication
+  - name: members
+    description: Member management
+  - name: announcements
+    description: Announcements
+  - name: activities
+    description: Activities and programs
+  - name: gallery
+    description: Photo gallery
+  - name: contact
+    description: Contact messages
+  - name: dashboard
+    description: Admin dashboard stats
+  - name: leadership
+    description: Leadership team
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +39,673 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/register:
+    post:
+      operationId: registerMember
+      tags: [auth]
+      summary: Register a new member
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberRegistration"
+      responses:
+        "201":
+          description: Member registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      operationId: loginMember
+      tags: [auth]
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /members:
+    get:
+      operationId: listMembers
+      tags: [members]
+      summary: List all members (admin)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, active, suspended, rejected]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Members list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MembersPage"
+
+  /members/{id}:
+    get:
+      operationId: getMember
+      tags: [members]
+      summary: Get a member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateMember
+      tags: [members]
+      summary: Update member status (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MemberUpdate"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+    delete:
+      operationId: deleteMember
+      tags: [members]
+      summary: Delete a member (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /members/profile:
+    patch:
+      operationId: updateProfile
+      tags: [members]
+      summary: Update own profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileUpdate"
+      responses:
+        "200":
+          description: Updated member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Member"
+
+  /announcements:
+    get:
+      operationId: listAnnouncements
+      tags: [announcements]
+      summary: List announcements
+      parameters:
+        - name: published
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Announcements list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnnouncementsPage"
+    post:
+      operationId: createAnnouncement
+      tags: [announcements]
+      summary: Create an announcement (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+
+  /announcements/{id}:
+    get:
+      operationId: getAnnouncement
+      tags: [announcements]
+      summary: Get an announcement
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Announcement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateAnnouncement
+      tags: [announcements]
+      summary: Update an announcement (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnnouncementUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Announcement"
+    delete:
+      operationId: deleteAnnouncement
+      tags: [announcements]
+      summary: Delete an announcement (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /activities:
+    get:
+      operationId: listActivities
+      tags: [activities]
+      summary: List activities
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [upcoming, ongoing, completed]
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Activities list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ActivitiesPage"
+    post:
+      operationId: createActivity
+      tags: [activities]
+      summary: Create an activity (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+
+  /activities/{id}:
+    get:
+      operationId: getActivity
+      tags: [activities]
+      summary: Get an activity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Activity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateActivity
+      tags: [activities]
+      summary: Update an activity (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActivityUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Activity"
+    delete:
+      operationId: deleteActivity
+      tags: [activities]
+      summary: Delete an activity (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /gallery:
+    get:
+      operationId: listGallery
+      tags: [gallery]
+      summary: List gallery images
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [events, community_service, meetings, trainings, workshops]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Gallery images
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryPage"
+    post:
+      operationId: createGalleryImage
+      tags: [gallery]
+      summary: Upload a gallery image (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GalleryImageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryImage"
+
+  /gallery/{id}:
+    get:
+      operationId: getGalleryImage
+      tags: [gallery]
+      summary: Get a gallery image
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Gallery image
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryImage"
+    patch:
+      operationId: updateGalleryImage
+      tags: [gallery]
+      summary: Update a gallery image (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GalleryImageUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GalleryImage"
+    delete:
+      operationId: deleteGalleryImage
+      tags: [gallery]
+      summary: Delete a gallery image (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /contact:
+    get:
+      operationId: listContactMessages
+      tags: [contact]
+      summary: List contact messages (admin)
+      parameters:
+        - name: read
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Contact messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessagesPage"
+    post:
+      operationId: submitContactMessage
+      tags: [contact]
+      summary: Submit a contact message
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Message submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessage"
+
+  /contact/{id}/read:
+    patch:
+      operationId: markMessageRead
+      tags: [contact]
+      summary: Mark contact message as read (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessage"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Get dashboard statistics (admin)
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/public-stats:
+    get:
+      operationId: getPublicStats
+      tags: [dashboard]
+      summary: Get public statistics for homepage
+      responses:
+        "200":
+          description: Public stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicStats"
+
+  /leadership:
+    get:
+      operationId: listLeadership
+      tags: [leadership]
+      summary: List leadership team members
+      responses:
+        "200":
+          description: Leadership team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LeadershipMember"
+    post:
+      operationId: createLeadershipMember
+      tags: [leadership]
+      summary: Add leadership member (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadershipInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadershipMember"
+
+  /leadership/{id}:
+    patch:
+      operationId: updateLeadershipMember
+      tags: [leadership]
+      summary: Update leadership member (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadershipUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadershipMember"
+    delete:
+      operationId: deleteLeadershipMember
+      tags: [leadership]
+      summary: Delete leadership member (admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +716,548 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        member:
+          $ref: "#/components/schemas/Member"
+      required:
+        - token
+        - member
+
+    MemberRegistration:
+      type: object
+      required:
+        - fullName
+        - email
+        - phone
+        - nationalId
+        - gender
+        - dateOfBirth
+        - occupation
+        - address
+        - password
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        nationalId:
+          type: string
+        gender:
+          type: string
+          enum: [male, female, other]
+        dateOfBirth:
+          type: string
+          format: date
+        occupation:
+          type: string
+        address:
+          type: string
+        password:
+          type: string
+          minLength: 8
+
+    LoginInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    Member:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        nationalId:
+          type: string
+        gender:
+          type: string
+        dateOfBirth:
+          type: string
+        occupation:
+          type: string
+        address:
+          type: string
+        role:
+          type: string
+          enum: [admin, member]
+        status:
+          type: string
+          enum: [pending, active, suspended, rejected]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - fullName
+        - email
+        - role
+        - status
+        - createdAt
+
+    MemberUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, active, suspended, rejected]
+        role:
+          type: string
+          enum: [admin, member]
+
+    ProfileUpdate:
+      type: object
+      properties:
+        fullName:
+          type: string
+        phone:
+          type: string
+        occupation:
+          type: string
+        address:
+          type: string
+
+    MembersPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Member"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - limit
+
+    Announcement:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        published:
+          type: boolean
+        publishedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - content
+        - published
+        - createdAt
+
+    AnnouncementInput:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        published:
+          type: boolean
+          default: false
+
+    AnnouncementUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        published:
+          type: boolean
+
+    AnnouncementsPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Announcement"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - limit
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, ongoing, completed]
+        imageUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - date
+        - location
+        - status
+        - createdAt
+
+    ActivityInput:
+      type: object
+      required:
+        - title
+        - description
+        - date
+        - location
+        - status
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+        date:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, ongoing, completed]
+        imageUrl:
+          type: string
+
+    ActivityUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+        location:
+          type: string
+        status:
+          type: string
+          enum: [upcoming, ongoing, completed]
+        imageUrl:
+          type: string
+
+    ActivitiesPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - limit
+
+    GalleryImage:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+          enum: [events, community_service, meetings, trainings, workshops]
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - imageUrl
+        - category
+        - createdAt
+
+    GalleryImageInput:
+      type: object
+      required:
+        - title
+        - imageUrl
+        - category
+      properties:
+        title:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+          enum: [events, community_service, meetings, trainings, workshops]
+
+    GalleryImageUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        imageUrl:
+          type: string
+        category:
+          type: string
+          enum: [events, community_service, meetings, trainings, workshops]
+
+    GalleryPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/GalleryImage"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - limit
+
+    ContactMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        fullName:
+          type: string
+        email:
+          type: string
+        subject:
+          type: string
+        message:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - fullName
+        - email
+        - subject
+        - message
+        - read
+        - createdAt
+
+    ContactInput:
+      type: object
+      required:
+        - fullName
+        - email
+        - subject
+        - message
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+          minLength: 2
+        message:
+          type: string
+          minLength: 10
+
+    ContactMessagesPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ContactMessage"
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - limit
+
+    DashboardStats:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        pendingMembers:
+          type: integer
+        activeMembers:
+          type: integer
+        totalAnnouncements:
+          type: integer
+        publishedAnnouncements:
+          type: integer
+        totalActivities:
+          type: integer
+        upcomingActivities:
+          type: integer
+        totalGalleryImages:
+          type: integer
+        unreadMessages:
+          type: integer
+        newRegistrationsThisMonth:
+          type: integer
+      required:
+        - totalMembers
+        - pendingMembers
+        - activeMembers
+        - totalAnnouncements
+        - publishedAnnouncements
+        - totalActivities
+        - upcomingActivities
+        - totalGalleryImages
+        - unreadMessages
+        - newRegistrationsThisMonth
+
+    PublicStats:
+      type: object
+      properties:
+        totalMembers:
+          type: integer
+        totalPrograms:
+          type: integer
+        yearsOfOperation:
+          type: integer
+      required:
+        - totalMembers
+        - totalPrograms
+        - yearsOfOperation
+
+    LeadershipMember:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        position:
+          type: string
+        bio:
+          type: string
+        photoUrl:
+          type: ["string", "null"]
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - position
+        - bio
+        - sortOrder
+        - createdAt
+
+    LeadershipInput:
+      type: object
+      required:
+        - name
+        - position
+        - bio
+      properties:
+        name:
+          type: string
+        position:
+          type: string
+        bio:
+          type: string
+        photoUrl:
+          type: string
+        sortOrder:
+          type: integer
+
+    LeadershipUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        position:
+          type: string
+        bio:
+          type: string
+        photoUrl:
+          type: string
+        sortOrder:
+          type: integer
