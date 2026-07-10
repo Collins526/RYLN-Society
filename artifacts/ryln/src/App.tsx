@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 // Public Layout Components
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AuthProvider } from "@/hooks/use-auth";
 
 // Public Pages
 import Home from "@/pages/home";
@@ -14,6 +15,7 @@ import Contact from "@/pages/contact";
 import Activities from "@/pages/activities";
 import Gallery from "@/pages/gallery";
 import Login from "@/pages/login";
+import MemberPage from "@/pages/member";
 import Register from "@/pages/register";
 import NotFound from "@/pages/not-found";
 
@@ -98,6 +100,9 @@ function Router() {
       <Route path="/gallery">
         <PublicLayout><Gallery /></PublicLayout>
       </Route>
+      <Route path="/member">
+        <PublicLayout><MemberPage /></PublicLayout>
+      </Route>
       
       {/* Auth Routes */}
       <Route path="/login">
@@ -119,8 +124,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router />
-        <Toaster />
+        <AuthProvider>
+          <Router />
+          <Toaster />
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

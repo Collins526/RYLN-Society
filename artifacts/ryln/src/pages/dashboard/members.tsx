@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   useListMembers, 
   useUpdateMember, 
@@ -53,7 +53,7 @@ export default function DashboardMembers() {
   const queryClient = useQueryClient();
   
   // Debounce search
-  useState(() => {
+  useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(search), 500);
     return () => clearTimeout(handler);
   }, [search]);

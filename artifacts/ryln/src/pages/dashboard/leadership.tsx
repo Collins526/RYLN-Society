@@ -71,6 +71,8 @@ export default function DashboardLeadership() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -91,29 +93,81 @@ export default function DashboardLeadership() {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const uploadPhotoFile = async () => {
+    if (!selectedFile) return undefined;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      const token = localStorage.getItem("ryln_token");
+      const response = await fetch("/api/leadership/upload", {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error ?? response.statusText);
+      }
+
+      const result = await response.json();
+      return result.imageUrl as string;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    let photoUrl = values.photoUrl;
+
+    if (!editingId && !selectedFile) {
+      toast({ title: "Please upload a photo file.", variant: "destructive" });
+      return;
+    }
+
+    if (selectedFile) {
+      try {
+        photoUrl = await uploadPhotoFile();
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Unable to upload image.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const payload = {
+      ...values,
+      photoUrl,
+    };
+
     if (editingId) {
       updateLeader.mutate(
-        { id: editingId, data: values },
+        { id: editingId, data: payload },
         {
           onSuccess: () => {
             toast({ title: "Leadership member updated" });
             queryClient.invalidateQueries({ queryKey: getListLeadershipQueryKey() });
             setIsDialogOpen(false);
             form.reset();
+            setSelectedFile(null);
             setEditingId(null);
           },
         }
       );
     } else {
       createLeader.mutate(
-        { data: values },
+        { data: payload },
         {
           onSuccess: () => {
             toast({ title: "Leadership member added" });
             queryClient.invalidateQueries({ queryKey: getListLeadershipQueryKey() });
             setIsDialogOpen(false);
             form.reset();
+            setSelectedFile(null);
           },
         }
       );
@@ -129,6 +183,7 @@ export default function DashboardLeadership() {
       photoUrl: leader.photoUrl || "",
       sortOrder: leader.sortOrder,
     });
+    setSelectedFile(null);
     setIsDialogOpen(true);
   };
 
@@ -149,6 +204,7 @@ export default function DashboardLeadership() {
   const openNewDialog = () => {
     setEditingId(null);
     form.reset({ name: "", position: "", bio: "", photoUrl: "", sortOrder: 0 });
+    setSelectedFile(null);
     setIsDialogOpen(true);
   };
 
@@ -274,19 +330,25 @@ export default function DashboardLeadership() {
               </div>
               <div className="grid grid-cols-4 gap-4">
                 <div className="col-span-3">
-                  <FormField
-                    control={form.control}
-                    name="photoUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Photo URL (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="https://..." {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  <FormItem>
+                    <FormLabel>Photo File</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) => {
+                          const file = event.target.files?.[0] ?? null;
+                          setSelectedFile(file);
+                          if (file) {
+                            form.setValue("photoUrl", "");
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {selectedFile ? `Selected: ${selectedFile.name}` : "Upload a profile photo for this leadership member."}
+                    </p>
+                  </FormItem>
                 </div>
                 <FormField
                   control={form.control}
@@ -319,7 +381,7 @@ export default function DashboardLeadership() {
                 <Button type="button" variant="outline" className="mr-2" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createLeader.isPending || updateLeader.isPending}>
+                <Button type="submit" disabled={createLeader.isPending || updateLeader.isPending || isUploading}>
                   {editingId ? "Save Changes" : "Add Member"}
                 </Button>
               </div>

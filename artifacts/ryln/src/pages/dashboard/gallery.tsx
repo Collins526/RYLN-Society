@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, ChangeEvent } from "react";
 import { 
   useListGallery,
   useCreateGalleryImage,
@@ -45,7 +45,7 @@ import { Badge } from "@/components/ui/badge";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
-  imageUrl: z.string().url("Valid image URL is required"),
+  imageUrl: z.union([z.string().url("Valid image URL is required"), z.literal("")]).optional(),
   category: z.enum(["events", "community_service", "meetings", "trainings", "workshops"]),
 });
 
@@ -54,6 +54,8 @@ type FormValues = z.infer<typeof formSchema>;
 export default function DashboardGallery() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -71,7 +73,50 @@ export default function DashboardGallery() {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
+    if (!selectedFile && !values.imageUrl) {
+      toast({ title: "Please upload an image file or enter an image URL.", variant: "destructive" });
+      return;
+    }
+
+    if (selectedFile) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("title", values.title);
+        formData.append("category", values.category);
+        formData.append("image", selectedFile);
+
+        const token = localStorage.getItem("ryln_token");
+        const response = await fetch("/api/gallery/upload", {
+          method: "POST",
+          body: formData,
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error ?? response.statusText);
+        }
+
+        toast({ title: "Image uploaded to gallery" });
+        queryClient.invalidateQueries({ queryKey: getListGalleryQueryKey() });
+        setIsDialogOpen(false);
+        form.reset();
+        setSelectedFile(null);
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Unable to upload image.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+
+      return;
+    }
+
     createGalleryImage.mutate(
       { data: values },
       {
@@ -80,6 +125,7 @@ export default function DashboardGallery() {
           queryClient.invalidateQueries({ queryKey: getListGalleryQueryKey() });
           setIsDialogOpen(false);
           form.reset();
+          setSelectedFile(null);
         },
       }
     );
@@ -213,8 +259,37 @@ export default function DashboardGallery() {
                       <Input placeholder="https://example.com/image.jpg" {...field} />
                     </FormControl>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Must be a valid URL starting with http:// or https://
+                      Optional if you are uploading a file.
                     </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image File</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          const file = event.target.files?.[0] ?? null;
+                          setSelectedFile(file);
+                          if (file) {
+                            form.setValue("imageUrl", "");
+                          }
+                          field.onChange("");
+                        }}
+                      />
+                    </FormControl>
+                    {selectedFile ? (
+                      <p className="text-sm text-muted-foreground mt-2">Selected file: {selectedFile.name}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">Choose an image file to upload directly.</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -223,8 +298,8 @@ export default function DashboardGallery() {
                 <Button type="button" variant="outline" className="mr-2" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createGalleryImage.isPending}>
-                  Add Photo
+                <Button type="submit" disabled={createGalleryImage.isPending || isUploading}>
+                  {isUploading ? "Uploading…" : "Add Photo"}
                 </Button>
               </div>
             </form>

@@ -1,4 +1,8 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import multer from "multer";
 import { db, leadershipTable } from "@workspace/db";
 import { eq, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth";
@@ -8,6 +12,29 @@ import {
 } from "@workspace/api-zod";
 
 const router = Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, "../uploads/leadership");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${path.extname(file.originalname)}`;
+    cb(null, safeName);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      cb(new Error("Only image files are allowed"));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 router.get("/leadership", async (_req, res) => {
   const members = await db.select().from(leadershipTable).orderBy(asc(leadershipTable.sortOrder), asc(leadershipTable.createdAt));
@@ -23,6 +50,17 @@ router.post("/leadership", requireAdmin, async (req, res) => {
     sortOrder: parse.data.sortOrder ?? 0,
   }).returning();
   res.status(201).json(member);
+});
+
+router.post("/leadership/upload", requireAdmin, upload.single("image"), async (req, res) => {
+  const file = req.file;
+  if (!file) {
+    res.status(400).json({ error: "Image file is required." });
+    return;
+  }
+
+  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/leadership/${file.filename}`;
+  res.status(201).json({ imageUrl });
 });
 
 router.patch("/leadership/:id", requireAdmin, async (req, res) => {

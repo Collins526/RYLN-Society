@@ -45,6 +45,9 @@ export function Navbar() {
               
               {user ? (
                 <div className="flex items-center space-x-4 ml-4 pl-4 border-l">
+                  <span className="text-sm font-medium text-foreground">
+                    {user.fullName ?? user.email}
+                  </span>
                   {isAdmin && (
                     <Link href="/dashboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
                       Dashboard
@@ -92,26 +95,34 @@ export function Navbar() {
             ))}
             
             {user ? (
-              <>
-                {isAdmin && (
-                  <Link
-                    href="/dashboard"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent/20 hover:text-primary"
-                    onClick={() => setIsOpen(false)}
+              <div className="space-y-4 px-3 py-3 border-b border-border/50 bg-background">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Signed in as</p>
+                  <p className="mt-1 text-base font-semibold text-foreground">
+                    {user.fullName ?? user.email}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  {isAdmin && (
+                    <Link
+                      href="/dashboard"
+                      className="block w-full rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-accent/20 hover:text-primary"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
+                    className="block w-full rounded-md bg-primary px-3 py-2 text-base font-medium text-white hover:bg-primary/90"
                   >
-                    Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    logout();
-                    setIsOpen(false);
-                  }}
-                  className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-foreground hover:bg-accent/20 hover:text-primary"
-                >
-                  Logout
-                </button>
-              </>
+                    Logout
+                  </button>
+                </div>
+              </div>
             ) : (
               <div className="pt-4 flex flex-col gap-2 px-3">
                 <Button variant="outline" className="w-full justify-center" asChild onClick={() => setIsOpen(false)}>

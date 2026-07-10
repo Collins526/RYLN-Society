@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function About() {
   const { data: leadershipData, isLoading } = useListLeadership();
+  const leaders = Array.isArray(leadershipData) ? leadershipData : [];
 
   return (
     <div className="flex flex-col min-h-screen pb-20">
@@ -115,21 +116,30 @@ export default function About() {
                 </div>
               ))}
             </div>
-          ) : leadershipData?.length ? (
+          ) : leaders.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {leadershipData.map(leader => (
-                <div key={leader.id} className="flex flex-col items-center text-center">
-                  <Avatar className="w-32 h-32 mb-6 border-4 border-muted">
-                    <AvatarImage src={leader.photoUrl || undefined} className="object-cover" />
-                    <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      {leader.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="text-xl font-bold text-foreground">{leader.name}</h3>
-                  <p className="text-primary font-medium mb-3">{leader.position}</p>
-                  <p className="text-sm text-muted-foreground">{leader.bio}</p>
-                </div>
-              ))}
+              {leaders.map(leader => {
+                const initials = (leader?.name ?? "")
+                  .split(" ")
+                  .map(namePart => namePart[0] ?? "")
+                  .join("")
+                  .substring(0, 2)
+                  .toUpperCase();
+
+                return (
+                  <div key={leader.id} className="flex flex-col items-center text-center">
+                    <Avatar className="w-32 h-32 mb-6 border-4 border-muted">
+                      <AvatarImage src={leader.photoUrl || undefined} className="object-cover" />
+                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                        {initials || "RY"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-xl font-bold text-foreground">{leader.name ?? "Unnamed Leader"}</h3>
+                    <p className="text-primary font-medium mb-3">{leader.position ?? "Team Member"}</p>
+                    <p className="text-sm text-muted-foreground">{leader.bio ?? "Biography will be available soon."}</p>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center p-8 bg-muted/20 rounded-lg">

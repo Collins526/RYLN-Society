@@ -52,7 +52,7 @@ export default function Login() {
           if (data.member.role === "admin") {
             setLocation("/dashboard");
           } else {
-            setLocation("/member");
+            setLocation("/");
           }
         },
         onError: (error) => {

@@ -65,7 +65,7 @@ export default function Register() {
             title: "Registration successful!",
             description: "Welcome to Rift Youth Leadership Network.",
           });
-          setLocation("/dashboard");
+          setLocation("/");
         },
         onError: (error) => {
           toast({

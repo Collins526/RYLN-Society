@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowRight, Users, Target, Calendar } from "lucide-react";
 
 export default function Home() {
+  const { user } = useAuth();
   const { data: stats, isLoading: statsLoading } = useGetPublicStats();
   const { data: announcementsData, isLoading: announcementsLoading } = useListAnnouncements({ published: true, limit: 3 });
 
@@ -32,9 +33,11 @@ export default function Home() {
               A purposeful, community-driven network where ambitious youth connect, grow, and lead meaningful change.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-                <Link href="/register">Join the Network</Link>
-              </Button>
+              {!user && (
+                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+                  <Link href="/register">Join the Network</Link>
+                </Button>
+              )}
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10" asChild>
                 <Link href="/about">Learn More</Link>
               </Button>
@@ -177,9 +180,11 @@ export default function Home() {
           <p className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-10">
             Join hundreds of other youth leaders in the Rift Valley who are shaping the future of our communities.
           </p>
-          <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-            <Link href="/register">Become a Member Today <ArrowRight className="ml-2 w-4 h-4" /></Link>
-          </Button>
+          { !user && (
+            <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+              <Link href="/register">Become a Member Today <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            </Button>
+          ) }
         </div>
       </section>
     </div>

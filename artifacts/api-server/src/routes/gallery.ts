@@ -1,4 +1,8 @@
 import { Router } from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import multer from "multer";
 import { db, galleryTable } from "@workspace/db";
 import { eq, sql, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth";
@@ -9,6 +13,29 @@ import {
 } from "@workspace/api-zod";
 
 const router = Router();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, "../uploads/gallery");
+fs.mkdirSync(uploadsDir, { recursive: true });
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadsDir),
+  filename: (_req, file, cb) => {
+    const safeName = `${Date.now()}-${Math.random().toString(36).slice(2)}${path.extname(file.originalname)}`;
+    cb(null, safeName);
+  },
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (_req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      cb(new Error("Only image files are allowed"));
+      return;
+    }
+    cb(null, true);
+  },
+});
 
 router.get("/gallery", async (req, res) => {
   const parse = ListGalleryQueryParams.safeParse(req.query);
@@ -37,6 +64,37 @@ router.post("/gallery", requireAdmin, async (req, res) => {
     ...parse.data,
     category: parse.data.category as "events" | "community_service" | "meetings" | "trainings" | "workshops",
   }).returning();
+  res.status(201).json(image);
+});
+
+router.post("/gallery/upload", requireAdmin, upload.single("image"), async (req, res) => {
+  const title = String(req.body.title ?? "").trim();
+  const category = String(req.body.category ?? "").trim();
+  const file = req.file;
+
+  if (!file) {
+    res.status(400).json({ error: "Image file is required." });
+    return;
+  }
+
+  if (!title) {
+    res.status(400).json({ error: "Title is required." });
+    return;
+  }
+
+  const allowedCategories = ["events", "community_service", "meetings", "trainings", "workshops"];
+  if (!allowedCategories.includes(category)) {
+    res.status(400).json({ error: "Invalid gallery category." });
+    return;
+  }
+
+  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/gallery/${file.filename}`;
+  const [image] = await db.insert(galleryTable).values({
+    title,
+    category: category as "events" | "community_service" | "meetings" | "trainings" | "workshops",
+    imageUrl,
+  }).returning();
+
   res.status(201).json(image);
 });
 
