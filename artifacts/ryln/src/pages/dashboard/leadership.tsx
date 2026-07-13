@@ -329,26 +329,24 @@ export default function DashboardLeadership() {
                 />
               </div>
               <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3">
-                  <FormItem>
-                    <FormLabel>Photo File</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0] ?? null;
-                          setSelectedFile(file);
-                          if (file) {
-                            form.setValue("photoUrl", "");
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {selectedFile ? `Selected: ${selectedFile.name}` : "Upload a profile photo for this leadership member."}
-                    </p>
-                  </FormItem>
+                <div className="col-span-3 space-y-2">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Photo File
+                  </label>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0] ?? null;
+                      setSelectedFile(file);
+                      if (file) {
+                        form.setValue("photoUrl", "");
+                      }
+                    }}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFile ? `Selected: ${selectedFile.name}` : "Upload a profile photo for this leadership member."}
+                  </p>
                 </div>
                 <FormField
                   control={form.control}

@@ -25,7 +25,7 @@ export default function About() {
               <h2 className="text-3xl font-bold mb-6 text-foreground">Our History</h2>
               <div className="space-y-4 text-muted-foreground text-lg">
                 <p>
-                  The Rift Youth Leadership Network (RYLN) was founded on the belief that young people are not just leaders of tomorrow—they are the leaders of today. Established in the heart of the Rift Valley, we recognized a critical gap in structured opportunities for youth to develop leadership skills and engage meaningfully with their communities.
+                  The Rift Youth Leadership Network (RYLN) was founded on the belief that young people are not just leaders of tomorrow, they are the leaders of today. Established in the heart of the Rift Valley, we recognized a critical gap in structured opportunities for youth to develop leadership skills and engage meaningfully with their communities.
                 </p>
                 <p>
                   What started as a small gathering of ambitious individuals has blossomed into a robust network, connecting hundreds of young professionals, students, and community organizers across the region.

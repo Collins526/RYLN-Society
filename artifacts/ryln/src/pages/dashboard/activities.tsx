@@ -75,6 +75,8 @@ export default function DashboardActivities() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -96,29 +98,76 @@ export default function DashboardActivities() {
     },
   });
 
-  const onSubmit = (values: FormValues) => {
+  const uploadActivityImage = async () => {
+    if (!selectedFile) return undefined;
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", selectedFile);
+      const token = localStorage.getItem("ryln_token");
+      const response = await fetch("/api/activities/upload", {
+        method: "POST",
+        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error ?? response.statusText);
+      }
+
+      const result = await response.json();
+      return result.imageUrl as string;
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const onSubmit = async (values: FormValues) => {
+    let imageUrl = values.imageUrl;
+
+    if (selectedFile) {
+      try {
+        imageUrl = await uploadActivityImage();
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: error instanceof Error ? error.message : "Unable to upload image.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    const payload = {
+      ...values,
+      imageUrl,
+    };
+
     if (editingId) {
       updateActivity.mutate(
-        { id: editingId, data: values },
+        { id: editingId, data: payload },
         {
           onSuccess: () => {
             toast({ title: "Activity updated" });
             queryClient.invalidateQueries({ queryKey: getListActivitiesQueryKey() });
             setIsDialogOpen(false);
             form.reset();
+            setSelectedFile(null);
             setEditingId(null);
           },
         }
       );
     } else {
       createActivity.mutate(
-        { data: values },
+        { data: payload },
         {
           onSuccess: () => {
             toast({ title: "Activity created" });
             queryClient.invalidateQueries({ queryKey: getListActivitiesQueryKey() });
             setIsDialogOpen(false);
             form.reset();
+            setSelectedFile(null);
           },
         }
       );
@@ -135,6 +184,7 @@ export default function DashboardActivities() {
       status: activity.status as any,
       imageUrl: activity.imageUrl || "",
     });
+    setSelectedFile(null);
     setIsDialogOpen(true);
   };
 
@@ -155,6 +205,7 @@ export default function DashboardActivities() {
   const openNewDialog = () => {
     setEditingId(null);
     form.reset({ title: "", description: "", date: "", location: "", status: "upcoming", imageUrl: "" });
+    setSelectedFile(null);
     setIsDialogOpen(true);
   };
 
@@ -317,19 +368,25 @@ export default function DashboardActivities() {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image URL (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Activity Image (Optional)
+                </label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] ?? null;
+                    setSelectedFile(file);
+                    if (file) {
+                      form.setValue("imageUrl", "");
+                    }
+                  }}
+                />
+                <p className="text-sm text-muted-foreground">
+                  {selectedFile ? `Selected: ${selectedFile.name}` : "Upload an image to display for this activity."}
+                </p>
+              </div>
               <FormField
                 control={form.control}
                 name="description"
@@ -347,7 +404,7 @@ export default function DashboardActivities() {
                 <Button type="button" variant="outline" className="mr-2" onClick={() => setIsDialogOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={createActivity.isPending || updateActivity.isPending}>
+                <Button type="submit" disabled={createActivity.isPending || updateActivity.isPending || isUploading}>
                   {editingId ? "Save Changes" : "Create"}
                 </Button>
               </div>
