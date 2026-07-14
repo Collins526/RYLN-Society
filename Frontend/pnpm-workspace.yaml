@@ -1,0 +1,9 @@
+packages:
+  - "."
+  - "lib/*"
+allowBuilds:
+  '0': esbuild
+  '1': '@swc/core'
+  '2': msw
+  '3': unrs-resolver
+  esbuild: true
