@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: youth-network-hub-backend
+    runtime: docker
+    repo: https://github.com/your-username/Youth-Network-Hub
+    branch: main
+    plan: free
+    region: oregon
+    dockerfilePath: ./Backend/Dockerfile
+    dockerContext: ./Backend
+    healthCheckPath: /api/healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
