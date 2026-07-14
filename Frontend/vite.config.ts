@@ -3,8 +3,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config({ path: path.resolve(import.meta.dirname, ".env") });
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const rawPort = process.env.PORT || "3000";
 
@@ -17,7 +20,7 @@ if (Number.isNaN(port) || port <= 0) {
 const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
-  logLevel: "error",
+  logLevel: "info",
   base: basePath,
   plugins: [
     react(),
