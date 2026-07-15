@@ -2,7 +2,7 @@ services:
   - type: web
     name: youth-network-hub-backend
     runtime: docker
-    repo: https://github.com/your-username/Youth-Network-Hub
+    repo: https://github.com/Collins526/RYLN-Society
     branch: main
     plan: free
     region: oregon
@@ -14,3 +14,16 @@ services:
         value: production
       - key: PORT
         value: 10000
+
+  - type: static
+    name: youth-network-hub-frontend
+    repo: https://github.com/Collins526/RYLN-Society
+    branch: main
+    buildCommand: |
+      cd Frontend
+      pnpm install --frozen-lockfile
+      pnpm run build
+    staticPublishPath: ./Frontend/dist/public
+    envVars:
+      - key: NODE_ENV
+        value: production
