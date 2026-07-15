@@ -55,6 +55,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { apiUrl } from "@/lib/api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const formSchema = z.object({
@@ -100,7 +101,7 @@ export default function DashboardLeadership() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       const token = localStorage.getItem("ryln_token");
-      const response = await fetch("/api/leadership/upload", {
+      const response = await fetch(apiUrl("/api/leadership/upload"), {
         method: "POST",
         body: formData,
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,

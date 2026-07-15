@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
+import { apiUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,7 +89,7 @@ export default function DashboardGallery() {
         formData.append("image", selectedFile);
 
         const token = localStorage.getItem("ryln_token");
-        const response = await fetch("/api/gallery/upload", {
+        const response = await fetch(apiUrl("/api/gallery/upload"), {
           method: "POST",
           body: formData,
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,

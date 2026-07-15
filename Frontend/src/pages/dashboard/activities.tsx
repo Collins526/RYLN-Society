@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { apiUrl } from "@/lib/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,7 +106,7 @@ export default function DashboardActivities() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       const token = localStorage.getItem("ryln_token");
-      const response = await fetch("/api/activities/upload", {
+      const response = await fetch(apiUrl("/api/activities/upload"), {
         method: "POST",
         body: formData,
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
