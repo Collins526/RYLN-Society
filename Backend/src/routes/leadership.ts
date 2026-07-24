@@ -59,7 +59,8 @@ router.post("/leadership/upload", requireAdmin, upload.single("image"), async (r
     return;
   }
 
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/leadership/${file.filename}`;
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
+  const imageUrl = `${hostPrefix}/uploads/leadership/${file.filename}`;
   res.status(201).json({ imageUrl });
 });
 

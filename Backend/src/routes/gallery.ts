@@ -88,7 +88,8 @@ router.post("/gallery/upload", requireAdmin, upload.single("image"), async (req,
     return;
   }
 
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/gallery/${file.filename}`;
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
+  const imageUrl = `${hostPrefix}/uploads/gallery/${file.filename}`;
   const [image] = await db.insert(galleryTable).values({
     title,
     category: category as "events" | "community_service" | "meetings" | "trainings" | "workshops",

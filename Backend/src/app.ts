@@ -10,6 +10,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app: Express = express();
 
+// When deployed behind a reverse proxy (e.g. render, nginx), trust
+// the proxy so `req.protocol` and `req.get('host')` reflect the
+// external origin. This makes URL generation consistent between
+// localhost and deployed environments.
+app.set("trust proxy", true);
+
 app.use(
   pinoHttp({
     logger,

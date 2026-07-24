@@ -54,7 +54,7 @@ router.get("/activities", async (req, res) => {
     db.select({ count: sql<number>`count(*)::int` }).from(activitiesTable).where(where),
   ]);
 
-  const hostPrefix = `${req.protocol}://${req.get("host")}`;
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
   const normalized = activities.map((a) => ({
     ...a,
     imageUrl: a.imageUrl && a.imageUrl.startsWith("/uploads") ? `${hostPrefix}${a.imageUrl}` : a.imageUrl,
