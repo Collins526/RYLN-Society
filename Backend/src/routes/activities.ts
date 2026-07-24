@@ -54,7 +54,13 @@ router.get("/activities", async (req, res) => {
     db.select({ count: sql<number>`count(*)::int` }).from(activitiesTable).where(where),
   ]);
 
-  res.json({ data: activities, total: count, page, limit });
+  const hostPrefix = `${req.protocol}://${req.get("host")}`;
+  const normalized = activities.map((a) => ({
+    ...a,
+    imageUrl: a.imageUrl && a.imageUrl.startsWith("/uploads") ? `${hostPrefix}${a.imageUrl}` : a.imageUrl,
+  }));
+
+  res.json({ data: normalized, total: count, page, limit });
 });
 
 router.post("/activities/upload", requireAdmin, upload.single("image"), async (req, res) => {
@@ -85,7 +91,12 @@ router.get("/activities/:id", async (req, res) => {
   const id = parseInt(req.params.id as string);
   const [activity] = await db.select().from(activitiesTable).where(eq(activitiesTable.id, id)).limit(1);
   if (!activity) { res.status(404).json({ error: "Not found" }); return; }
-  res.json(activity);
+
+  const normalized = activity.imageUrl && activity.imageUrl.startsWith("/uploads")
+    ? { ...activity, imageUrl: `${req.protocol}://${req.get("host")}${activity.imageUrl}` }
+    : activity;
+
+  res.json(normalized);
 });
 
 router.patch("/activities/:id", requireAdmin, async (req, res) => {

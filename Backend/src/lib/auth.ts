@@ -9,8 +9,8 @@ export interface JwtPayload {
   email: string;
 }
 
-export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+export function signToken(payload: JwtPayload, expiresIn = "15m"): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn });
 }
 
 export function verifyToken(token: string): JwtPayload {
@@ -26,6 +26,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
   try {
     const payload = verifyToken(auth.slice(7));
     (req as Request & { user: JwtPayload }).user = payload;
+    // Re-issue a short-lived token on activity to implement sliding inactivity timeout
+    try {
+      const refreshed = signToken(payload);
+      res.setHeader("x-refresh-token", refreshed);
+    } catch (e) {
+      // ignore refresh failures
+    }
     next();
   } catch {
     res.status(401).json({ error: "Invalid token" });

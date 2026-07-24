@@ -367,5 +367,15 @@ export async function customFetch<T = unknown>(
     throw new ApiError(response, errorData, requestInfo);
   }
 
+  // Save refreshed token from backend to localStorage (implements sliding inactivity timeout)
+  try {
+    const refreshed = response.headers.get("x-refresh-token");
+    if (refreshed && typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("ryln_token", refreshed);
+      } catch {}
+    }
+  } catch {}
+
   return (await parseSuccessBody(response, responseType, requestInfo)) as T;
 }
