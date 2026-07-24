@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 import { db, leadershipTable } from "@workspace/db";
+import { cloudinaryUploader } from "../lib/cloudinary";
 import { eq, asc } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth";
 import {
@@ -36,9 +37,14 @@ const upload = multer({
   },
 });
 
-router.get("/leadership", async (_req, res) => {
+router.get("/leadership", async (req, res) => {
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
   const members = await db.select().from(leadershipTable).orderBy(asc(leadershipTable.sortOrder), asc(leadershipTable.createdAt));
-  res.json(members);
+  const normalized = members.map((member) => ({
+    ...member,
+    imageUrl: member.imageUrl && member.imageUrl.startsWith("/uploads") ? `${hostPrefix}${member.imageUrl}` : member.imageUrl,
+  }));
+  res.json(normalized);
 });
 
 router.post("/leadership", requireAdmin, async (req, res) => {
@@ -59,9 +65,22 @@ router.post("/leadership/upload", requireAdmin, upload.single("image"), async (r
     return;
   }
 
-  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
-  const imageUrl = `${hostPrefix}/uploads/leadership/${file.filename}`;
-  res.status(201).json({ imageUrl });
+  try {
+    const uploadResult = await cloudinaryUploader.uploader.upload(file.path, {
+      folder: "ryln/leadership",
+      resource_type: "image",
+    });
+
+    if (!uploadResult.secure_url) {
+      throw new Error("Failed to upload image to Cloudinary.");
+    }
+
+    res.status(201).json({ imageUrl: uploadResult.secure_url });
+  } catch (error) {
+    res.status(500).json({ error: "Image upload failed." });
+  } finally {
+    await fs.promises.unlink(file.path).catch(() => null);
+  }
 });
 
 router.patch("/leadership/:id", requireAdmin, async (req, res) => {

@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 import { db, galleryTable } from "@workspace/db";
+import { cloudinaryUploader } from "../lib/cloudinary";
 import { eq, sql, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth";
 import {
@@ -44,6 +45,8 @@ router.get("/gallery", async (req, res) => {
   const limit = params.limit ?? 20;
   const offset = (page - 1) * limit;
 
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
+
   const conditions = [];
   if (params.category) conditions.push(eq(galleryTable.category, params.category as "events" | "community_service" | "meetings" | "trainings" | "workshops"));
   const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -53,7 +56,12 @@ router.get("/gallery", async (req, res) => {
     db.select({ count: sql<number>`count(*)::int` }).from(galleryTable).where(where),
   ]);
 
-  res.json({ data: images, total: count, page, limit });
+  const normalized = images.map((image) => ({
+    ...image,
+    imageUrl: image.imageUrl && image.imageUrl.startsWith("/uploads") ? `${hostPrefix}${image.imageUrl}` : image.imageUrl,
+  }));
+
+  res.json({ data: normalized, total: count, page, limit });
 });
 
 router.post("/gallery", requireAdmin, async (req, res) => {
@@ -88,15 +96,29 @@ router.post("/gallery/upload", requireAdmin, upload.single("image"), async (req,
     return;
   }
 
-  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
-  const imageUrl = `${hostPrefix}/uploads/gallery/${file.filename}`;
-  const [image] = await db.insert(galleryTable).values({
-    title,
-    category: category as "events" | "community_service" | "meetings" | "trainings" | "workshops",
-    imageUrl,
-  }).returning();
+  try {
+    const uploadResult = await cloudinaryUploader.uploader.upload(file.path, {
+      folder: "ryln/gallery",
+      resource_type: "image",
+    });
 
-  res.status(201).json(image);
+    if (!uploadResult.secure_url) {
+      throw new Error("Failed to upload image to Cloudinary.");
+    }
+
+    const imageUrl = uploadResult.secure_url;
+    const [image] = await db.insert(galleryTable).values({
+      title,
+      category: category as "events" | "community_service" | "meetings" | "trainings" | "workshops",
+      imageUrl,
+    }).returning();
+
+    res.status(201).json(image);
+  } catch (error) {
+    res.status(500).json({ error: "Image upload failed." });
+  } finally {
+    await fs.promises.unlink(file.path).catch(() => null);
+  }
 });
 
 router.get("/gallery/:id", async (req, res) => {

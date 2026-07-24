@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import multer from "multer";
 import { db, activitiesTable } from "@workspace/db";
+import { cloudinaryUploader } from "../lib/cloudinary";
 import { eq, like, sql, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../lib/auth";
 import {
@@ -71,9 +72,22 @@ router.post("/activities/upload", requireAdmin, upload.single("image"), async (r
     return;
   }
 
-  const imageUrl = `${req.protocol}://${req.get("host")}/uploads/activities/${file.filename}`;
+  try {
+    const uploadResult = await cloudinaryUploader.uploader.upload(file.path, {
+      folder: "ryln/activities",
+      resource_type: "image",
+    });
 
-  res.status(201).json({ imageUrl });
+    if (!uploadResult.secure_url) {
+      throw new Error("Failed to upload image to Cloudinary.");
+    }
+
+    res.status(201).json({ imageUrl: uploadResult.secure_url });
+  } catch (error) {
+    res.status(500).json({ error: "Image upload failed." });
+  } finally {
+    await fs.promises.unlink(file.path).catch(() => null);
+  }
 });
 
 router.post("/activities", requireAdmin, async (req, res) => {
@@ -92,8 +106,9 @@ router.get("/activities/:id", async (req, res) => {
   const [activity] = await db.select().from(activitiesTable).where(eq(activitiesTable.id, id)).limit(1);
   if (!activity) { res.status(404).json({ error: "Not found" }); return; }
 
+  const hostPrefix = (process.env.BACKEND_PUBLIC_URL ?? "").replace(/\/+$/, "") || `${req.protocol}://${req.get("host")}`;
   const normalized = activity.imageUrl && activity.imageUrl.startsWith("/uploads")
-    ? { ...activity, imageUrl: `${req.protocol}://${req.get("host")}${activity.imageUrl}` }
+    ? { ...activity, imageUrl: `${hostPrefix}${activity.imageUrl}` }
     : activity;
 
   res.json(normalized);
