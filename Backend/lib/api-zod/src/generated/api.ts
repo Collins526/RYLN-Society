@@ -27,7 +27,7 @@ export const registerMemberBodyPasswordMin = 8;
 
 export const RegisterMemberBody = zod.object({
   "fullName": zod.string().min(registerMemberBodyFullNameMin),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "phone": zod.string(),
   "nationalId": zod.string(),
   "gender": zod.enum(['male', 'female', 'other']),
@@ -61,7 +61,7 @@ export const RegisterMemberResponse = zod.object({
  * @summary Login
  */
 export const LoginMemberBody = zod.object({
-  "email": zod.email(),
+  "email": zod.string().email(),
   "password": zod.string()
 })
 
@@ -591,7 +591,7 @@ export const submitContactMessageBodyMessageMin = 10;
 
 export const SubmitContactMessageBody = zod.object({
   "fullName": zod.string().min(submitContactMessageBodyFullNameMin),
-  "email": zod.email(),
+  "email": zod.string().email(),
   "subject": zod.string().min(submitContactMessageBodySubjectMin),
   "message": zod.string().min(submitContactMessageBodyMessageMin)
 })
