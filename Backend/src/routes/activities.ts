@@ -97,6 +97,7 @@ router.post("/activities", requireAdmin, async (req, res) => {
   const [activity] = await db.insert(activitiesTable).values({
     ...parse.data,
     status: parse.data.status as "upcoming" | "ongoing" | "completed",
+    link: parse.data.link,
   }).returning();
   res.status(201).json(activity);
 });
@@ -122,6 +123,7 @@ router.patch("/activities/:id", requireAdmin, async (req, res) => {
   const [updated] = await db.update(activitiesTable).set({
     ...parse.data,
     status: parse.data.status as "upcoming" | "ongoing" | "completed" | undefined,
+    link: parse.data.link,
     updatedAt: new Date(),
   }).where(eq(activitiesTable.id, id)).returning();
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }

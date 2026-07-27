@@ -10,6 +10,7 @@ export const activitiesTable = pgTable("activities", {
   description: text("description").notNull(),
   date: text("date").notNull(),
   location: text("location").notNull(),
+  link: text("link"),
   status: activityStatusEnum("status").notNull().default("upcoming"),
   imageUrl: text("image_url"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

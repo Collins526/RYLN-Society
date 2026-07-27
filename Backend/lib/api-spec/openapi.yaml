@@ -946,6 +946,8 @@ components:
           type: string
         location:
           type: string
+        link:
+          type: string
         status:
           type: string
           enum: [upcoming, ongoing, completed]
@@ -982,6 +984,8 @@ components:
           type: string
         location:
           type: string
+        link:
+          type: string
         status:
           type: string
           enum: [upcoming, ongoing, completed]
@@ -998,6 +1002,8 @@ components:
         date:
           type: string
         location:
+          type: string
+        link:
           type: string
         status:
           type: string
