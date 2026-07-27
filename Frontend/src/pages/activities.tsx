@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin } from "lucide-react";
 import { format } from "date-fns";
+import { Link } from "wouter";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Activities() {
@@ -50,13 +51,14 @@ export default function Activities() {
                   <CardContent>
                     <Skeleton className="h-20 w-full" />
                   </CardContent>
-                </Card>
+                  </Card>
               ))}
             </div>
           ) : data?.data && data.data.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {data.data.map((activity) => (
-                <Card key={activity.id} className="overflow-hidden flex flex-col border-border/50 shadow-sm hover-elevate transition-all">
+                <Link href={`/activities/${activity.id}`} key={activity.id} className="block">
+                  <Card className="overflow-hidden flex flex-col border-border/50 shadow-sm hover-elevate transition-all">
                   <div className="h-48 w-full bg-muted relative">
                     {activity.imageUrl ? (
                       <img 
@@ -97,6 +99,7 @@ export default function Activities() {
                     </p>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           ) : (

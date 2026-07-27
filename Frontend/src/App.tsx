@@ -13,6 +13,7 @@ import Home from "@/pages/home";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import Activities from "@/pages/activities";
+import Activity from "@/pages/activity";
 import Gallery from "@/pages/gallery";
 import Login from "@/pages/login";
 import MemberPage from "@/pages/member";
@@ -96,6 +97,9 @@ function Router() {
       </Route>
       <Route path="/activities">
         <PublicLayout><Activities /></PublicLayout>
+      </Route>
+      <Route path="/activities/:id">
+        <PublicLayout><Activity /></PublicLayout>
       </Route>
       <Route path="/gallery">
         <PublicLayout><Gallery /></PublicLayout>
