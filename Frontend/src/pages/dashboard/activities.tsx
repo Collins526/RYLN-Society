@@ -68,6 +68,7 @@ const formSchema = z.object({
   location: z.string().min(1, "Location is required"),
   status: z.enum(["upcoming", "ongoing", "completed"]),
   imageUrl: z.string().optional(),
+  link: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -96,6 +97,7 @@ export default function DashboardActivities() {
       location: "",
       status: "upcoming",
       imageUrl: "",
+      link: "",
     },
   });
 
@@ -184,6 +186,7 @@ export default function DashboardActivities() {
       location: activity.location,
       status: activity.status as any,
       imageUrl: activity.imageUrl || "",
+      link: activity.link || "",
     });
     setSelectedFile(null);
     setIsDialogOpen(true);
@@ -205,7 +208,7 @@ export default function DashboardActivities() {
 
   const openNewDialog = () => {
     setEditingId(null);
-    form.reset({ title: "", description: "", date: "", location: "", status: "upcoming", imageUrl: "" });
+    form.reset({ title: "", description: "", date: "", location: "", status: "upcoming", imageUrl: "", link: "" });
     setSelectedFile(null);
     setIsDialogOpen(true);
   };
@@ -364,6 +367,19 @@ export default function DashboardActivities() {
                     <FormLabel>Location</FormLabel>
                     <FormControl>
                       <Input placeholder="Venue or city" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="link"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Link (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com or meeting link" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
