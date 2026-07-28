@@ -50,7 +50,7 @@ router.get("/dashboard/stats", requireAdmin, async (_req, res) => {
 router.get("/dashboard/public-stats", async (_req, res) => {
   const [[{ totalMembers }], [{ totalPrograms }]] = await Promise.all([
     db.select({ totalMembers: sql<number>`count(*)::int` }).from(membersTable).where(eq(membersTable.status, "active")),
-    db.select({ totalPrograms: sql<number>`count(*)::int` }).from(activitiesTable).where(eq(activitiesTable.status, "completed")),
+    db.select({ totalPrograms: sql<number>`count(*)::int` }).from(activitiesTable),
   ]);
 
   res.json({
