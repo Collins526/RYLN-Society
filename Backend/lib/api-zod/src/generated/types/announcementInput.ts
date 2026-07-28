@@ -11,5 +11,6 @@ export interface AnnouncementInput {
   title: string;
   /** @minLength 1 */
   content: string;
+  eventDate?: string;
   published?: boolean;
 }

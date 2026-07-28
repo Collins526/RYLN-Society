@@ -40,6 +40,7 @@ router.post("/announcements", requireAdmin, async (req, res) => {
     ...parse.data,
     published: parse.data.published ?? false,
     publishedAt,
+    eventDate: parse.data.eventDate,
   }).returning();
   res.status(201).json(announcement);
 });

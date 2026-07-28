@@ -247,6 +247,7 @@ export const ListAnnouncementsResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
   "content": zod.string(),
+  "eventDate": zod.string().nullish(),
   "published": zod.boolean(),
   "publishedAt": zod.string().nullish(),
   "createdAt": zod.string(),
@@ -268,6 +269,7 @@ export const createAnnouncementBodyPublishedDefault = false;
 export const CreateAnnouncementBody = zod.object({
   "title": zod.string().min(1),
   "content": zod.string().min(1),
+  "eventDate": zod.string().optional(),
   "published": zod.boolean().default(createAnnouncementBodyPublishedDefault)
 })
 
@@ -275,6 +277,7 @@ export const CreateAnnouncementResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
   "content": zod.string(),
+  "eventDate": zod.string().nullish(),
   "published": zod.boolean(),
   "publishedAt": zod.string().nullish(),
   "createdAt": zod.string(),
@@ -293,6 +296,7 @@ export const GetAnnouncementResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
   "content": zod.string(),
+  "eventDate": zod.string().nullish(),
   "published": zod.boolean(),
   "publishedAt": zod.string().nullish(),
   "createdAt": zod.string(),
@@ -310,6 +314,7 @@ export const UpdateAnnouncementParams = zod.object({
 export const UpdateAnnouncementBody = zod.object({
   "title": zod.string().optional(),
   "content": zod.string().optional(),
+  "eventDate": zod.string().optional(),
   "published": zod.boolean().optional()
 })
 
@@ -317,6 +322,7 @@ export const UpdateAnnouncementResponse = zod.object({
   "id": zod.number(),
   "title": zod.string(),
   "content": zod.string(),
+  "eventDate": zod.string().nullish(),
   "published": zod.boolean(),
   "publishedAt": zod.string().nullish(),
   "createdAt": zod.string(),

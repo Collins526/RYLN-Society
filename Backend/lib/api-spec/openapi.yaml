@@ -873,6 +873,8 @@ components:
           type: string
         content:
           type: string
+        eventDate:
+          type: ["string", "null"]
         published:
           type: boolean
         publishedAt:
@@ -900,6 +902,9 @@ components:
         content:
           type: string
           minLength: 1
+        eventDate:
+          type: string
+          format: date
         published:
           type: boolean
           default: false
@@ -911,6 +916,9 @@ components:
           type: string
         content:
           type: string
+        eventDate:
+          type: string
+          format: date
         published:
           type: boolean
 

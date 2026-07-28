@@ -10,6 +10,8 @@ export interface Announcement {
   id: number;
   title: string;
   content: string;
+  /** @nullable */
+  eventDate?: string | null;
   published: boolean;
   /** @nullable */
   publishedAt?: string | null;

@@ -6,6 +6,7 @@ export const announcementsTable = pgTable("announcements", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   content: text("content").notNull(),
+  eventDate: text("event_date"),
   published: boolean("published").notNull().default(false),
   publishedAt: timestamp("published_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
