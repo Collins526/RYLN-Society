@@ -49,8 +49,8 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-12 bg-white border-b">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center divide-y md:divide-y-0 md:divide-x divide-border">
-            <div className="py-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x md:divide-x divide-border">
+            <div className="py-4 rounded-3xl bg-white shadow-sm border border-border/50">
               <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-primary">
                 <Users className="w-6 h-6" />
               </div>
@@ -59,7 +59,7 @@ export default function Home() {
               </h3>
               <p className="text-muted-foreground mt-1 font-medium">Active Members</p>
             </div>
-            <div className="py-4">
+            <div className="py-4 rounded-3xl bg-white shadow-sm border border-border/50">
               <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-primary">
                 <Target className="w-6 h-6" />
               </div>
@@ -68,7 +68,7 @@ export default function Home() {
               </h3>
               <p className="text-muted-foreground mt-1 font-medium">Programs Initiated</p>
             </div>
-            <div className="py-4">
+            <div className="py-4 rounded-3xl bg-white shadow-sm border border-border/50">
               <div className="mx-auto bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mb-4 text-primary">
                 <Calendar className="w-6 h-6" />
               </div>
