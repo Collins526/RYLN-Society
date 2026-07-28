@@ -155,7 +155,7 @@ export default function Home() {
                 <Card key={announcement.id} className="h-full flex flex-col hover-elevate transition-all border-border/50 shadow-sm">
                   <CardHeader>
                     <CardDescription>
-                      {announcement.publishedAt ? format(new Date(announcement.publishedAt), 'MMMM d, yyyy') : ''}
+                      {announcement.eventDate ? format(new Date(announcement.eventDate), 'MMMM d, yyyy') : announcement.publishedAt ? format(new Date(announcement.publishedAt), 'MMMM d, yyyy') : ''}
                     </CardDescription>
                     <CardTitle className="text-xl">{announcement.title}</CardTitle>
                   </CardHeader>

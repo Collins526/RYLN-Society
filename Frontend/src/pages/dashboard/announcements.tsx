@@ -63,6 +63,8 @@ import {
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   content: z.string().min(1, "Content is required"),
+  eventDate: z.string().optional(),
+  publishedAt: z.string().optional(),
   published: z.boolean().default(false),
 });
 
@@ -86,6 +88,8 @@ export default function DashboardAnnouncements() {
     defaultValues: {
       title: "",
       content: "",
+      eventDate: "",
+      publishedAt: "",
       published: false,
     },
   });
@@ -124,6 +128,8 @@ export default function DashboardAnnouncements() {
     form.reset({
       title: announcement.title,
       content: announcement.content,
+      eventDate: announcement.eventDate ? announcement.eventDate.split("T")[0] : "",
+      publishedAt: announcement.publishedAt ? announcement.publishedAt.split("T")[0] : "",
       published: announcement.published,
     });
     setIsDialogOpen(true);
@@ -157,7 +163,7 @@ export default function DashboardAnnouncements() {
 
   const openNewDialog = () => {
     setEditingId(null);
-    form.reset({ title: "", content: "", published: false });
+    form.reset({ title: "", content: "", eventDate: "", publishedAt: "", published: false });
     setIsDialogOpen(true);
   };
 
@@ -205,7 +211,7 @@ export default function DashboardAnnouncements() {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {format(new Date(item.createdAt), "MMM d, yyyy")}
+                      {item.eventDate ? format(new Date(item.eventDate), "MMM d, yyyy") : item.publishedAt ? format(new Date(item.publishedAt), "MMM d, yyyy") : format(new Date(item.createdAt), "MMM d, yyyy")}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
@@ -264,6 +270,19 @@ export default function DashboardAnnouncements() {
                     <FormLabel>Title</FormLabel>
                     <FormControl>
                       <Input placeholder="Announcement title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="eventDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Event date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

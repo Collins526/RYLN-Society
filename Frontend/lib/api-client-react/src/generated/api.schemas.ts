@@ -121,6 +121,8 @@ export interface Announcement {
   id: number;
   title: string;
   content: string;
+  /** @nullable */
+  eventDate?: string | null;
   published: boolean;
   /** @nullable */
   publishedAt?: string | null;
@@ -133,12 +135,14 @@ export interface AnnouncementInput {
   title: string;
   /** @minLength 1 */
   content: string;
+  eventDate?: string;
   published?: boolean;
 }
 
 export interface AnnouncementUpdate {
   title?: string;
   content?: string;
+  eventDate?: string;
   published?: boolean;
 }
 

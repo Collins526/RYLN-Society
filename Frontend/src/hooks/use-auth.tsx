@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Member } from "@workspace/api-client-react";
 
@@ -16,15 +16,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [user, setUser] = useState<Member | null>(() => {
     const saved = localStorage.getItem("ryln_user");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
+    const token = localStorage.getItem("ryln_token");
+
+    if (!saved || !token) {
+      localStorage.removeItem("ryln_user");
+      localStorage.removeItem("ryln_token");
+      return null;
     }
-    return null;
+
+    try {
+      return JSON.parse(saved);
+    } catch {
+      localStorage.removeItem("ryln_user");
+      localStorage.removeItem("ryln_token");
+      return null;
+    }
   });
+
+  useEffect(() => {
+    if (user && !localStorage.getItem("ryln_token")) {
+      setUser(null);
+    }
+  }, [user]);
 
   const login = (token: string, member: Member) => {
     localStorage.setItem("ryln_token", token);
