@@ -23,6 +23,7 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Rift Youth Leadership Network" className="h-10 w-10 rounded-full object-cover" />
               <span className="text-xl font-bold tracking-tight text-primary">RYLN</span>
             </Link>
           </div>
